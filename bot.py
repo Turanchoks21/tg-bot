@@ -10,7 +10,6 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 from flask import Flask
 
-# --- ÍÀÑÒÐÎÉÊÀ FLASK ÄËß RENDER ---
 app = Flask('')
 
 @app.route('/')
@@ -26,7 +25,6 @@ def keep_alive():
     t = Thread(target=run)
     t.daemon = True
     t.start()
-# ----------------------------------
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -98,7 +96,6 @@ async def reply_error(update: Update, usage: str) -> None:
 async def reply_ok(update: Update, sheet: str) -> None:
     await update.message.reply_text(f"Saved to sheet \"{sheet}\".")
 
-# --- Îáðàáîò÷èêè êîìàíä ---
 
 async def cmd_mnp(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     args = parse_args(context, 4)

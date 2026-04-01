@@ -17,8 +17,7 @@ def home():
     return "I'm alive"
 
 def run():
-    # Render передает порт в переменную окружения PORT
-    port = int(os.environ.get("PORT", 8080))
+        port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
 
 def keep_alive():
@@ -55,7 +54,6 @@ def get_gspread_client() -> gspread.Client:
         creds_dict = json.loads(creds_json)
         creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
     else:
-        # Исправлено: file вместо file
         creds_path = os.path.join(os.path.dirname(file), "credentials.json")
         creds = Credentials.from_service_account_file(creds_path, scopes=SCOPES)
     return gspread.authorize(creds)
@@ -185,7 +183,6 @@ def main() -> None:
     if not token:
         raise ValueError("TELEGRAM_BOT_TOKEN environment variable is not set.")
 
-    # Запускаем Flask в отдельном потоке
     keep_alive()
 
     app = Application.builder().token(token).build()

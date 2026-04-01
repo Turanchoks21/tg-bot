@@ -26,7 +26,6 @@ import logging
 from datetime import datetime
 
 from flask import Flask
-import threadingfrom flask import Flask
 import threading
 
 import gspread

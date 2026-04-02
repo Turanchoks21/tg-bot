@@ -37,64 +37,48 @@ def append_row_smart(sheet_name, values):
     sheet_id = os.environ.get("GOOGLE_SHEET_ID")
     client = get_gspread_client()
     ss = client.open_by_key(sheet_id)
-    
     try:
         ws = ss.worksheet(sheet_name)
     except gspread.WorksheetNotFound:
         ws = ss.add_worksheet(title=sheet_name, rows=1000, cols=10)
         ws.append_row(SHEET_HEADERS[sheet_name])
     
-    # Считаем заполненные строки только по первому столбцу (Дата)
-    # Это позволяет игнорировать формулы в соседних столбцах
     col_a = ws.col_values(1)
     next_row = len(col_a) + 1
-    
     row_data = [datetime.now().strftime("%d-%m-%Y")] + list(values)
-    
-    # Определяем диапазон записи (например, A10:E10)
     num_cols = len(row_data)
     end_col = chr(ord('A') + num_cols - 1)
     range_label = f"A{next_row}:{end_col}{next_row}"
-    
     ws.update(range_name=range_label, values=[row_data], value_input_option="USER_ENTERED")
 
 async def cmd_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     cmd = update.message.text.split()[0][1:].lower()
     args = context.args or []
-    
     if cmd not in SHEET_HEADERS:
         return
-
     expected = len(SHEET_HEADERS[cmd]) - 1
     if len(args) != expected:
-        await update.message.reply_text(f"Ошибка! Для /{cmd} нужно {expected} параметров через пробел.")
+        await update.message.reply_text(f"Usage: /{cmd} " + " ".join([f"[{h}]" for h in SHEET_HEADERS[cmd][1:]]))
         return
-
     try:
         append_row_smart(cmd, args)
-        await update.message.reply_text(f"? {cmd.upper()}: данные внесены.")
+        await update.message.reply_text(f"Saved to sheet \"{cmd}\".")
     except Exception as e:
         logger.error(e)
-        await update.message.reply_text("? Ошибка при записи в таблицу.")
+        await update.message.reply_text("Error saving data.")
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Бот запущен. Жду команды: /mnp, /b2b, /phone, /migr, /new, /22")
+    await update.message.reply_text("Bot started.")
 
 def main():
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
-    if not token:
-        logger.error("TELEGRAM_BOT_TOKEN не найден!")
-        return
-    
+    if not token: return
     app = Application.builder().token(token).build()
-    
     for cmd in SHEET_HEADERS.keys():
         app.add_handler(CommandHandler(cmd, cmd_handler))
-    
-    app.add_handler(CommandHandler("start", cmd_start))
-    
-    logger.info("Бот запущен...")
-    app.run_polling(poll_interval=1.0, timeout=30)
+    app_tg = app
+    app_tg.add_handler(CommandHandler("start", cmd_start))
+    app_tg.run_polling(poll_interval=1.0, timeout=30)
 
 if __name__ == "__main__":
     main()
